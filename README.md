@@ -16,13 +16,11 @@ This repository contains the training and inference pipeline for super-resolving
 - EINOPs (`pip install einops`)
 - Official HAT repository in path.
 
-## How to Run Inference
-Ensure that the final trained checkpoint is located in `experiments/train_HAT_SRx2_v4/models/`.
+## How to Run Inference (Evaluation Script)
+The standalone evaluation script is `inference.py`. It accepts paths for test images and output directories, and runs inference automatically without manual edits.
 
-Place the evaluation `.npy` test files in the `NoisyLR/` directory.
-
-Run the inference script:
+Run the evaluation script using the following command:
 ```bash
-python inference.py
+python inference.py --test_dir "path/to/test_images" --output_dir "path/to/output_images"
 ```
-The output super-resolved arrays will be saved automatically into the `results/` directory.
+*(Note: It automatically loads the trained model from `weights/net_g_40000.pth` and applies it to all `.npy` files found in `--test_dir`)*

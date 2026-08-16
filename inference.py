@@ -6,12 +6,17 @@ import numpy as np
 import yaml
 from tqdm import tqdm
 import sys
+import argparse
 import os.path as osp
 
-# Add HAT to path
+# Add HAT to path if it exists locally, or rely on basicsr installation
 sys.path.append(osp.abspath('HAT'))
-from hat.archs.hat_arch import HAT
-import main  # registers HATModel
+try:
+    from hat.archs.hat_arch import HAT
+    import main  # registers HATModel
+except ImportError:
+    print("Please ensure the official HAT repository is in the working directory.")
+    sys.exit(1)
 
 def run_inference(model_path, input_folder, output_folder, config_path='train_hat.yml'):
     with open(config_path, 'r') as f:
@@ -50,7 +55,7 @@ def run_inference(model_path, input_folder, output_folder, config_path='train_ha
     scale = opt.get('scale', 2)
     
     with torch.no_grad():
-        for file_path in tqdm(npy_files):
+        for file_path in tqdm(npy_files, desc="Running Inference"):
             filename = os.path.basename(file_path)
             save_path = os.path.join(output_folder, filename)
             
@@ -96,17 +101,20 @@ def run_inference(model_path, input_folder, output_folder, config_path='train_ha
     print(f"Inference completed! All output .npy files are saved to {output_folder}")
 
 if __name__ == '__main__':
-    models_dir = r'd:\Non_Academic\Semicon\experiments\train_HAT_SRx2_v4\models'
-    pts = glob.glob(os.path.join(models_dir, 'net_g_*.pth'))
-    if not pts:
-        print("No checkpoint files found!")
+    parser = argparse.ArgumentParser(description="Standalone Evaluation Script for KLA Degradation Super-Resolution")
+    parser.add_argument('--test_dir', type=str, required=True, help="Path to the directory containing NoisyLR .npy files")
+    parser.add_argument('--output_dir', type=str, required=True, help="Path to the directory where restored outputs will be saved")
+    parser.add_argument('--model_path', type=str, default='weights/net_g_40000.pth', help="Path to the trained PyTorch checkpoint (.pth)")
+    parser.add_argument('--config', type=str, default='train_hat.yml', help="Path to the HAT YAML configuration file")
+    
+    args = parser.parse_args()
+    
+    if not os.path.exists(args.test_dir):
+        print(f"Error: The test directory '{args.test_dir}' does not exist.")
         sys.exit(1)
         
-    # Get the checkpoint with the highest iteration number
-    latest_pt = max(pts, key=lambda x: int(os.path.basename(x).split('_')[2].split('.')[0]))
-    print(f"Latest checkpoint selected: {latest_pt}")
-    
-    input_dir = r'd:\Non_Academic\Semicon\NoisyLR'
-    output_dir = r'd:\Non_Academic\Semicon\results'
-    
-    run_inference(latest_pt, input_dir, output_dir)
+    if not os.path.exists(args.model_path):
+        print(f"Error: The model checkpoint '{args.model_path}' does not exist.")
+        sys.exit(1)
+        
+    run_inference(args.model_path, args.test_dir, args.output_dir, args.config)
