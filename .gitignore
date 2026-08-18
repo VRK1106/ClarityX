@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments & IDE settings
+.venv/
+venv/
+ENV/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Output directories & test files generated during evaluation
+test_output/
+test_output_npy/
+restored_outputs/
+mini_test_input/
+mini_test_output/
+*.npy
